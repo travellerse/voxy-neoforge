@@ -275,7 +275,11 @@ public class ModelFactory {
             var biomeRegistry = Minecraft.getInstance().level.registryAccess().lookupOrThrow(Registries.BIOME);
             // MC 1.21.1: RegistryLookup.getValue(ResourceLocation) → need ResourceKey, use get() which returns Optional<Holder<T>>
             var biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeEntry.biome));
-            var res = this.addBiome0(biomeEntry.id, biomeRegistry.get(biomeKey).map(Holder::value).orElse(DEFAULT_BIOME.value()));
+            var mcBiomeEntry = biomeRegistry.get(biomeKey);
+            if (mcBiomeEntry.isEmpty()) {
+                Logger.error("Could not find biome: " + biomeEntry.biome + " using default");
+            }
+            var res = this.addBiome0(biomeEntry.id, mcBiomeEntry.map(Holder::value).orElse(DEFAULT_BIOME.value()));
             if (res != null) {
                 this.uploadResults.add(res);
             }
@@ -703,6 +707,9 @@ public class ModelFactory {
     }
 
     private BiomeUploadResult addBiome0(int id, Biome biome) {
+        if (biome == null) {
+            throw new IllegalStateException("Null biome");
+        }
         for (int i = this.biomes.size(); i <= id; i++) {
             this.biomes.add(null);
         }
@@ -712,7 +719,8 @@ public class ModelFactory {
             throw new IllegalStateException("Biome was put in an id that was not null");
         }
         if (oldBiome == biome) {
-            Logger.error("Biome added was a duplicate");
+            Logger.error("Biome added was a duplicate: " + id);
+            return null;
         }
 
         if (this.modelsRequiringBiomeColours.isEmpty()) return null;
@@ -768,6 +776,10 @@ public class ModelFactory {
 
             @Override
             public int getBlockTint(BlockPos pos, ColorResolver colorResolver) {
+                if (colorResolver == null) {
+                    Logger.error("Block state: " + state + " colourprovider: " + colorProvider + " had a null colorresolver");
+                    return 0;
+                }
                 return colorResolver.getColor(biome, 0, 0);
             }
 
