@@ -113,7 +113,8 @@ public class VoxyConfigMenu implements ConfigEntryPoint {
                                             if (vrsh != null) {
                                                 var vrs = vrsh.getVoxyRenderSystem();
                                                 if (vrs != null) {
-                                                    vrs.setRenderDistance(c);
+                                                    // CFG.sectionRenderDistance is the top-level section distance; the displayed value is scaled.
+                                                    vrs.setRenderDistance(CFG.sectionRenderDistance);
                                                 }
                                             }
                                         }, "voxy:rendering", RENDER_RELOAD)
