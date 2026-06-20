@@ -277,7 +277,7 @@ public class ModelFactory {
             var biomeKey = ResourceKey.create(Registries.BIOME, ResourceLocation.parse(biomeEntry.biome));
             var mcBiomeEntry = biomeRegistry.get(biomeKey);
             if (mcBiomeEntry.isEmpty()) {
-                Logger.error("Could not find biome: " + biomeEntry.biome + " using default");
+                Logger.warn("Could not find biome: " + biomeEntry.biome + " using default");
             }
             var res = this.addBiome0(biomeEntry.id, mcBiomeEntry.map(Holder::value).orElse(DEFAULT_BIOME.value()));
             if (res != null) {
