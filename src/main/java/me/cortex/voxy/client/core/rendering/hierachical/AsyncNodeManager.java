@@ -62,6 +62,7 @@ public class AsyncNodeManager {
     public final int maxNodeCount;
     private final long geometryCapacity;
     private volatile boolean running = true;
+    private volatile Throwable uncaughtException;
 
     private final NodeManager manager;
     private final BasicAsyncGeometryManager geometryManager;
@@ -99,6 +100,8 @@ public class AsyncNodeManager {
                     this.run();
                 }
             } catch (Exception e) {
+                this.uncaughtException = e;
+                this.running = false;
                 Logger.error("Critical error occurred in async processor, things will be broken", e);
             }
         });
@@ -619,7 +622,12 @@ public class AsyncNodeManager {
     private final LongOpenHashSet tlnRem = new LongOpenHashSet();
 
     private void addWork() {
-        if (!this.running) throw new IllegalStateException("Not running");
+        if (!this.running) {
+            if (this.uncaughtException != null) {
+                throw new RuntimeException(this.uncaughtException);
+            }
+            throw new IllegalStateException("Not running");
+        }
         if (this.workCounter.getAndIncrement() == 0) {
             LockSupport.unpark(this.thread);
         }
