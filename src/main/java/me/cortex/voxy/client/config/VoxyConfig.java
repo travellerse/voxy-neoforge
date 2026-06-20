@@ -3,6 +3,7 @@ package me.cortex.voxy.client.config;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import me.cortex.voxy.common.Logger;
 import me.cortex.voxy.common.util.cpu.CpuLayout;
 import me.cortex.voxy.commonImpl.VoxyCommon;
@@ -58,9 +59,12 @@ public class VoxyConfig {
                         Logger.error("Failed to load voxy config, resetting");
                     }
                 } catch (IOException e) {
+                    Logger.error("Could not load config", e);
+                } catch (JsonParseException e) {
                     Logger.error("Could not parse config", e);
                 }
             }
+            Logger.info("Error during config loading, creating new");
             var config = new VoxyConfig();
             config.save();
             return config;
