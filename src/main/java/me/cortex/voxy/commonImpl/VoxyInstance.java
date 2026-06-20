@@ -32,6 +32,13 @@ public abstract class VoxyInstance {
     protected final ImportManager importManager;
 
     public VoxyInstance() {
+        this(true);
+    }
+
+    protected VoxyInstance(boolean shouldCreateInstance) {
+        if (!shouldCreateInstance) {
+            throw new DontCreateInstance();
+        }
         Logger.info("Initializing voxy instance");
         this.threadPool = new UnifiedServiceThreadPool();
         this.savingService = new SectionSavingService(this.getServiceManager());

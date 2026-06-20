@@ -75,7 +75,8 @@ public abstract class MixinLevelRenderer implements IGetVoxyRenderSystem {
         }
         var instance = (VoxyClientInstance)VoxyCommon.getInstance();
         if (instance == null) {
-            Logger.error("Not creating renderer due to null instance");
+            //This is legal when this storage instance is disabled.
+            Logger.info("Not creating renderer due to null instance");
             return;
         }
         WorldEngine world = WorldIdentifier.ofEngine(this.level);

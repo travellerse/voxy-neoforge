@@ -28,16 +28,32 @@ public class VoxyClientInstance extends VoxyInstance {
     private final SectionStorageConfig storageConfig;
     private final Path basePath;
     private final boolean noIngestOverride;
+
+    private record InitConfig(Path basePath, Config config, boolean noIngestOverride) {
+    }
+
+    private static final ThreadLocal<InitConfig> INIT_CONFIG = new ThreadLocal<>();
+
     public VoxyClientInstance() {
-        super();
+        super(prepareInitConfig());
+        var init = INIT_CONFIG.get();
+        INIT_CONFIG.remove();
+        this.noIngestOverride = init.noIngestOverride;
+        this.basePath = init.basePath;
+        this.storageConfig = init.config.sectionStorageConfig;
+        this.updateDedicatedThreads();
+    }
+
+    private static boolean prepareInitConfig() {
         var path = FlashbackCompat.getReplayStoragePath();
-        this.noIngestOverride = path != null;
+        var noIngestOverride = path != null;
         if (path == null) {
             path = getBasePath();
         }
-        this.basePath = path;
-        this.storageConfig = StorageConfigUtil.getCreateStorageConfig(Config.class, c->c.version==1&&c.sectionStorageConfig!=null, ()->DEFAULT_STORAGE_CONFIG, path).sectionStorageConfig;
-        this.updateDedicatedThreads();
+        var basePath = path.normalize();
+        var config = StorageConfigUtil.getCreateStorageConfig(Config.class, c->c.version==1&&c.sectionStorageConfig!=null, ()->DEFAULT_STORAGE_CONFIG, basePath);
+        INIT_CONFIG.set(new InitConfig(basePath, config, noIngestOverride));
+        return !config.disabled;
     }
 
     @Override
@@ -82,6 +98,7 @@ public class VoxyClientInstance extends VoxyInstance {
     private static class Config {
         public int version = 1;
         public SectionStorageConfig sectionStorageConfig;
+        public boolean disabled = false;
     }
 
     private static final Config DEFAULT_STORAGE_CONFIG;
