@@ -1694,9 +1694,9 @@ public class RenderDataFactory {
         aabb |= this.minX;
         aabb |= this.minY<<5;
         aabb |= this.minZ<<10;
-        aabb |= (this.maxX-this.minX-1)<<15;
-        aabb |= (this.maxY-this.minY-1)<<20;
-        aabb |= (this.maxZ-this.minZ-1)<<25;
+        aabb |= Math.max(0, this.maxX-this.minX-1)<<15;
+        aabb |= Math.max(0, this.maxY-this.minY-1)<<20;
+        aabb |= Math.max(0, this.maxZ-this.minZ-1)<<25;
 
         MemoryBuffer occupancy = null;
         if (BUILD_OCCUPANCY_SET && !this.occupancy.isEmpty()) {
